@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,9 +25,29 @@ class SentimentAnalysisViewModel @Inject constructor(
         Log.v("zxcv commentInViewModel",text)
         viewModelScope.launch {
             _state.value = null
-            val sentimentAnalysis = sentimentAnalysisRepo.getSentimentAnalysis(apiKey, text)
+
+            var sentimentAnalysis: SentimentAnalysis? = null
+            var retryCount = 0
+            val maxRetries = 3
+            val retryIntervalMillis = 500L
+
+            while (sentimentAnalysis == null && retryCount < maxRetries) {
+                withTimeoutOrNull(2000) {
+                    try {
+                        sentimentAnalysis = sentimentAnalysisRepo.getSentimentAnalysis(apiKey, text)
+                    } catch (e: Exception) {
+                        Log.e("SentimentAnalysis", "Error: ${e.message}")
+                    }
+                }
+
+                if (sentimentAnalysis == null) {
+                    retryCount++
+
+                }
+            }
+
             _state.value = sentimentAnalysis
-            callback(_state.value!!.sentiment)
+            _state.value?.sentiment?.let(callback)
 
             Log.v("zxcv commentInViewModelReturn", _state.value!!.sentiment.toString())
 
