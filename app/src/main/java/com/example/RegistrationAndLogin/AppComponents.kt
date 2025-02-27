@@ -267,31 +267,67 @@ fun ClickableTextComponent(value: String, navController: NavController) {
     val privacyPolicyText = "Privacy Policy"
     val andText = " and"
     val termsAndConditionsText = " Terms of Use"
+
+    // State to manage dialog visibility
+    val showDialog = remember { mutableStateOf(false) }
+    val dialogType = remember { mutableStateOf("") }
+
     val annotatedString = buildAnnotatedString {
         append(initialText)
         withStyle(style = SpanStyle(color = Primary)) {
             pushStringAnnotation(tag = privacyPolicyText, annotation = privacyPolicyText)
             append(privacyPolicyText)
+            pop()
         }
         append(andText)
         withStyle(style = SpanStyle(color = Primary)) {
             pushStringAnnotation(tag = termsAndConditionsText, annotation = termsAndConditionsText)
             append(termsAndConditionsText)
+            pop()
         }
-
     }
-    ClickableText(text = annotatedString, onClick = { offset ->
 
+    ClickableText(text = annotatedString, onClick = { offset ->
         annotatedString.getStringAnnotations(offset, offset)
-            .firstOrNull()?.also { span ->
+            .firstOrNull()?.let { span ->
                 Log.d("ClickableTextComponent", "{$span}")
-                if (span.item == termsAndConditionsText) {
-                    navController.navigate("TermsAndConditionsScreen")
+                when (span.item) {
+                    privacyPolicyText -> {
+                        dialogType.value = privacyPolicyText
+                        showDialog.value = true
+                    }
+                    termsAndConditionsText -> {
+                        dialogType.value = termsAndConditionsText
+                        showDialog.value = true
+                    }
                 }
             }
-
     })
 
+    // Show dialog based on the state
+    if (showDialog.value) {
+        Dialog(onDismissRequest = { showDialog.value = false }) {
+            // You can customize the dialog content here
+            AlertDialog(
+                onDismissRequest = { showDialog.value = false },
+                title = { Text(dialogType.value) },
+                text = {
+                    Text(
+                        text = when (dialogType.value) {
+                            privacyPolicyText -> "Here is the Privacy Policy content."
+                            termsAndConditionsText -> "Here are the Terms of Use content."
+                            else -> ""
+                        }
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = { showDialog.value = false }) {
+                        Text("Close")
+                    }
+                }
+            )
+        }
+    }
 }
 
 @Composable
