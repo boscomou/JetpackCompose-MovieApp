@@ -100,7 +100,7 @@ fun TopRateScreen(topRateViewModel: TopRateViewModel = hiltViewModel()) {
         }
         when (choosedItem) {
 
-            "All" -> genresShow = "null"
+            "All" -> genresShow = ""
             "Action" -> genresShow = "28"
             "Animation" -> genresShow = "16"
 
