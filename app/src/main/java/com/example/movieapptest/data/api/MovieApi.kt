@@ -33,7 +33,7 @@ interface MovieApi {
         @Query("page") page: String
     ): Movie
 
-    @GET("/3/movie/top_rated?language=en-US")
+    @GET("/3/discover/movie?language=en-US&sort_by=vote_average.desc")
     suspend fun getTopRateMovies(
         @Query("api_key") api_key: String,
         @Query("with_genres") with_genres: Any,
